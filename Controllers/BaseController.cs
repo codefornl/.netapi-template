@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Builders;
 using Newtonsoft.Json;
 
 namespace Api.Controllers
@@ -15,7 +16,6 @@ namespace Api.Controllers
   {
     protected Configuration.General config;
     private readonly Adapters.Mongo<T> _db;
-    protected string _idcol = "Id";
 
     public Base(IOptions<Configuration.General> dbConfig)
     {
@@ -30,10 +30,10 @@ namespace Api.Controllers
     }
 
     [HttpGet("{id}")]
-    public async Task<T> Get(int id)
+    public async Task<T> Get(String id)
     {
-      var filter = new BsonDocument { { _idcol, id } };
-      return await _db.Collection.Find(filter).FirstOrDefaultAsync();
+      FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
+      return await _db.Collection.Find(filter).FirstAsync();
     }
 
     [HttpPost]
@@ -51,11 +51,11 @@ namespace Api.Controllers
     }
 
     [HttpPut("{id}")]
-    public async Task<bool> Put(int id, [FromBody] T document)
+    public async Task<bool> Put(String id, [FromBody] T document)
     {
       try
       {
-        var filter = new BsonDocument { { _idcol, id } };
+        FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
         ReplaceOneResult actionResult = await _db.Collection
                                         .ReplaceOneAsync(filter
                                                         , document
@@ -70,11 +70,11 @@ namespace Api.Controllers
     }
 
     [HttpDelete("{id}")]
-    public async Task<bool> Delete(int id)
+    public async Task<bool> Delete(String id)
     {
       try
       {
-        var filter = new BsonDocument { { _idcol, id } };
+        FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
         DeleteResult actionResult = await _db.Collection.DeleteOneAsync(filter);
         return actionResult.IsAcknowledged
                     && actionResult.DeletedCount > 0;

@@ -7,10 +7,11 @@ namespace Api.Models
 {
   public class Example
   {
-    [JsonIgnore]
-    public ObjectId Id { get; set; }
     [JsonProperty("id")]
-    public int InternalId { get; set; }
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public String Id { get; set; }
+
     [JsonProperty("name")]
     [BsonElement("Name")]
     public string Name { get; set; }
