@@ -1,5 +1,7 @@
 
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
@@ -22,39 +24,66 @@ namespace Api.Controllers
     }
 
     [HttpGet]
-    public string Get()
+    public async Task<IEnumerable<T>> Get()
     {
-      List<T> result = _db.Collection.Find(new BsonDocument()).ToList();
-      return JsonConvert.SerializeObject(result);
+      return await _db.Collection.Find(new BsonDocument()).ToListAsync();
     }
 
     [HttpGet("{id}")]
-    public string Get(int id)
+    public async Task<T> Get(int id)
     {
       var filter = new BsonDocument { { _idcol, id } };
-      var document = _db.Collection.Find(filter).First();
-      return JsonConvert.SerializeObject(document);
+      return await _db.Collection.Find(filter).FirstOrDefaultAsync();
     }
 
     [HttpPost]
-    public string Post([FromBody] T document)
+    public async Task Post([FromBody] T document)
     {
-      _db.Collection.InsertOne(document);
-      return JsonConvert.SerializeObject(document);
+      try
+      {
+        await _db.Collection.InsertOneAsync(document);
+      }
+      catch (Exception ex)
+      {
+        throw ex;
+      }
+
     }
 
     [HttpPut("{id}")]
-    public async void Put(int id, [FromBody] T document)
+    public async Task<bool> Put(int id, [FromBody] T document)
     {
-      var filter = new BsonDocument { { _idcol, id } };
-      await _db.Collection.ReplaceOneAsync(filter, document);
+      try
+      {
+        var filter = new BsonDocument { { _idcol, id } };
+        ReplaceOneResult actionResult = await _db.Collection
+                                        .ReplaceOneAsync(filter
+                                                        , document
+                                                        , new UpdateOptions { IsUpsert = true });
+        return actionResult.IsAcknowledged
+            && actionResult.ModifiedCount > 0;
+      }
+      catch (Exception ex)
+      {
+        throw ex;
+      }
     }
 
     [HttpDelete("{id}")]
-    public void Delete(int id)
+    public async Task<bool> Delete(int id)
     {
-      var filter = new BsonDocument { { _idcol, id } };
-      var operation = _db.Collection.DeleteOne(filter);
+      try
+      {
+        var filter = new BsonDocument { { _idcol, id } };
+        DeleteResult actionResult = await _db.Collection.DeleteOneAsync(filter);
+        return actionResult.IsAcknowledged
+                    && actionResult.DeletedCount > 0;
+
+      }
+      catch (Exception ex)
+      {
+        throw ex;
+      }
     }
   }
 }

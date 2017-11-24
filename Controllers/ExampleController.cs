@@ -9,7 +9,7 @@ namespace Api.Controllers
   {
     public ExampleController(IOptions<General> config) : base(config)
     {
-      _idcol = "JsonId";
+      _idcol = "InternalId";
     }
   }
 }
