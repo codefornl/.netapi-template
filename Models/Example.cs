@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 
 namespace Api.Models
 {
+  [BsonIgnoreExtraElements]
   public class Example
   {
     [JsonProperty("id")]

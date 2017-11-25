@@ -14,17 +14,15 @@ namespace Api.Controllers
   [Route("api/[controller]")]
   public abstract class Base<T> : Controller where T : class
   {
-    protected Configuration.General config;
-    private readonly Adapters.Mongo<T> _db;
+    protected readonly Adapters.Mongo<T> _db;
 
-    public Base(IOptions<Configuration.General> dbConfig)
+    public Base(IOptions<Configuration.General> config)
     {
-      config = dbConfig.Value;
-      _db = new Adapters.Mongo<T>(config);
+      _db = new Adapters.Mongo<T>(config.Value);
     }
 
     [HttpGet]
-    public async Task<IEnumerable<T>> Get()
+    public virtual async Task<IEnumerable<T>> Get()
     {
       return await _db.Collection.Find(new BsonDocument()).ToListAsync();
     }
@@ -66,6 +64,7 @@ namespace Api.Controllers
       catch (Exception ex)
       {
         throw ex;
+        
       }
     }
 
